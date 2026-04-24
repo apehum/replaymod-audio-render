@@ -16,10 +16,15 @@ public class ReplayModAudioRender implements ModInitializer {
 	public void onInitialize() {
 	}
 
-	public static AudioRender AUDIO_RENDER;
+	private static AudioRender AUDIO_RENDER;
 
 	public static boolean isRendering() {
 		return AUDIO_RENDER != null;
+	}
+
+	public static void submit() {
+		if (AUDIO_RENDER == null) return;
+		AUDIO_RENDER.submit();
 	}
 
 	public static void startRender(@NotNull VideoRenderer renderer) {
