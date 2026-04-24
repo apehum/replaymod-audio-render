@@ -1,5 +1,6 @@
 package com.apehum.replayaudio.mixin;
 
+import com.apehum.replayaudio.AudioRenderSettings;
 import com.apehum.replayaudio.ReplayModAudioRender;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -35,9 +36,12 @@ public class MixinLibrary {
         }
 
         try (MemoryStack memoryStack = MemoryStack.stackPush()) {
+            int channelFormat = AudioRenderSettings.get().stereo
+                    ? SOFTLoopback.ALC_STEREO_SOFT
+                    : SOFTLoopback.ALC_MONO_SOFT;
             IntBuffer intBuffer = memoryStack.callocInt(7)
                     .put(ALC10.ALC_FREQUENCY).put(48000)
-                    .put(SOFTLoopback.ALC_FORMAT_CHANNELS_SOFT).put(SOFTLoopback.ALC_STEREO_SOFT)
+                    .put(SOFTLoopback.ALC_FORMAT_CHANNELS_SOFT).put(channelFormat)
                     .put(SOFTLoopback.ALC_FORMAT_TYPE_SOFT).put(SOFTLoopback.ALC_SHORT_SOFT)
                     .put(0)
                     .flip();

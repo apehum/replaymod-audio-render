@@ -9,7 +9,9 @@
 		"MixinSoundEngineAccessor",
 		"MixinReplayMod",
 		"MixinVideoRenderer",
-		"MixinProcessTask"
+		"MixinProcessTask",
+
+		"MixinGuiRenderSettings"
 	],
 	"injectors": {
 		"defaultRequire": 1

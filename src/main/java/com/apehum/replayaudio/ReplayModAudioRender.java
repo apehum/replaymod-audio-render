@@ -24,6 +24,7 @@ public class ReplayModAudioRender implements ModInitializer {
 
 	public static void startRender(@NotNull VideoRenderer renderer) {
 		if (AUDIO_RENDER != null) return;
+		if (!AudioRenderSettings.get().enabled) return;
 
 		AUDIO_RENDER = new AudioRender(renderer);
 		Minecraft.getInstance().executeBlocking(ReplayModAudioRender::reloadDevice);

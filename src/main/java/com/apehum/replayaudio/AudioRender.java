@@ -10,14 +10,15 @@ import net.minecraft.client.sounds.SoundEngine;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.openal.SOFTLoopback;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 
 public final class AudioRender {
 
     private final @NotNull VideoRenderer videoRenderer;
+    private final int channels;
 
     private final @NotNull Process process;
     private final @NotNull InputStream inputStream;
@@ -26,13 +27,18 @@ public final class AudioRender {
     public AudioRender(final @NotNull VideoRenderer videoRenderer) {
         this.videoRenderer = videoRenderer;
 
-        var outputVideoFile = videoRenderer.getRenderSettings().getOutputFile();
-        var outputFolder = outputVideoFile.getParentFile();
-        var outputFileNameSplit = outputVideoFile.getName().split("\\.");
-        var outputFileName = String.join(".", Arrays.copyOf(outputFileNameSplit, outputFileNameSplit.length - 1)) + ".aac";
+        var settings = AudioRenderSettings.get();
+        this.channels = settings.stereo ? 2 : 1;
+
+        File outputAudioFile = settings.outputFile != null
+                ? settings.outputFile
+                : deriveAudioFile(videoRenderer.getRenderSettings().getOutputFile(), settings.codec);
+
+        var outputFolder = outputAudioFile.getParentFile();
 
         var ffmpegCommand = videoRenderer.getRenderSettings().getExportCommandOrDefault();
-        var commandArguments = "-y -f s16le -ar 48000 -ac 2 -i - -c:a aac " + outputFileName;
+        var commandArguments = "-y -f s16le -ar 48000 -ac " + channels
+                + " -i - -c:a " + settings.codec.ffmpegCodec + " " + outputAudioFile.getName();
 
         ReplayModAudioRender.LOGGER.info("ffmpeg command arguments: {}", commandArguments);
 
@@ -69,7 +75,7 @@ public final class AudioRender {
         var camera = minecraft.gameRenderer.getMainCamera();
         ((SoundEngine) soundEngine).updateSource(camera);
 
-        short[] shortsBuffer = new short[frameSize * 2];
+        short[] shortsBuffer = new short[frameSize * channels];
         SOFTLoopback.alcRenderSamplesSOFT(devicePointer, shortsBuffer, frameSize);
 
         try {
@@ -92,6 +98,13 @@ public final class AudioRender {
             ReplayModAudioRender.LOGGER.info("Failed to exit ffmpeg process", e);
         }
         process.destroy();
+    }
+
+    public static File deriveAudioFile(File videoFile, AudioCodec codec) {
+        String name = videoFile.getName();
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name;
+        return new File(videoFile.getParentFile(), base + "." + codec.extension);
     }
 
     public static byte[] shortsToBytes(short[] shorts) {
