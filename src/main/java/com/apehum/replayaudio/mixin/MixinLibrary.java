@@ -22,7 +22,7 @@ public class MixinLibrary {
     @Shadow private long currentDevice;
 
     @Inject(method = "openDeviceOrFallback", at = @At("HEAD"), cancellable = true)
-    private static void openDeviceOrFallback(String deviceName, CallbackInfoReturnable<Long> cir) {
+    private static void openDeviceOrFallback(CallbackInfoReturnable<Long> cir) {
         if (!ReplayModAudioRender.isRendering()) return;
 
         var devicePointer = SOFTLoopback.alcLoopbackOpenDeviceSOFT((String) null);

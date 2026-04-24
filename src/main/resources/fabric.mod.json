@@ -24,7 +24,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.16.5",
-		"java": ">=21",
+		"minecraft": "${minecraftVersionDependency}",
 		"fabric-api": "*",
 		"replaymod": "*"
 	},
