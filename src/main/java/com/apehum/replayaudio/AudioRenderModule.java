@@ -9,7 +9,6 @@ public class AudioRenderModule extends EventRegistrations implements Module {
     @Override
     public void initClient() {
         on(ReplayRenderCallback.Pre.EVENT, ReplayModAudioRender::startRender);
-        on(ReplayRenderCallback.Post.EVENT, ReplayModAudioRender::stopRender);
         register();
     }
 }
