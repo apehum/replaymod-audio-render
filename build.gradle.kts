@@ -1,3 +1,5 @@
+import com.apehum.replayaudio.VersionResolver
+import me.modmuss50.mpp.ReleaseType
 import net.fabricmc.loom.LoomGradlePlugin
 import net.fabricmc.loom.LoomNoRemapGradlePlugin
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
@@ -6,6 +8,7 @@ import net.fabricmc.loom.task.RemapJarTask
 plugins {
     kotlin("jvm") version "2.3.20"
     id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT" apply false
+    id("me.modmuss50.mod-publish-plugin") version "1.1.0"
     `maven-publish`
 }
 
@@ -106,3 +109,44 @@ kotlin {
 java.toolchain.languageVersion.set(
     JavaLanguageVersion.of(if (noMappings) 25 else 21),
 )
+
+val outputJarTask =
+    if (noMappings) {
+        tasks.named<Jar>("jar")
+    } else {
+        tasks.named<RemapJarTask>("remapJar")
+    }
+
+publishMods {
+    changelog =
+        rootProject.layout.projectDirectory
+            .file("changelog.md")
+            .asFile
+            .readText()
+    type = ReleaseType.BETA
+    modLoaders.add("fabric")
+
+    displayName = "[Fabric $minecraftVersion] ReplayModAudioRender ${rootProject.property("mod_version")}"
+    file = outputJarTask.flatMap { it.archiveFile }
+
+    val modrinthToken =
+        providers
+            .gradleProperty("modrinth_token")
+            .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
+            .orNull
+            ?.takeIf { it.isNotBlank() }
+
+    dryRun = modrinthToken == null
+
+    val minecraftVersions =
+        VersionResolver
+            .getMinecraftVersionsInRange("release", project.property("minecraft_version_dependency") as String)
+            .get()
+            .map { it.id }
+
+    modrinth {
+        projectId = "JNgb4oIM"
+        accessToken = modrinthToken
+        this.minecraftVersions.addAll(minecraftVersions)
+    }
+}

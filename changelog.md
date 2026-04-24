@@ -1,0 +1,2 @@
+- Added audio settings inside ReplayMod render menu: render toggle, codec selection, stereo toggle and output file selection.
+- Fixed crash when taking a screenshot inside replay.
