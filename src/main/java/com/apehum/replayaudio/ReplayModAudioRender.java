@@ -1,16 +1,17 @@
 package com.apehum.replayaudio;
 
+import com.apehum.replayaudio.mixin.MixinSoundManagerAccessor;
 import com.replaymod.render.rendering.VideoRenderer;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.client.Minecraft;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ReplayModAudioRender implements ModInitializer {
 	public static final String MOD_ID = "replaymodaudiorender";
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {
@@ -45,6 +46,8 @@ public class ReplayModAudioRender implements ModInitializer {
 	}
 
 	private static void reloadDevice() {
-		Minecraft.getInstance().getSoundManager().reload();
+		((MixinSoundManagerAccessor) Minecraft.getInstance().getSoundManager())
+				.getSoundEngine()
+				.reload();
 	}
 }

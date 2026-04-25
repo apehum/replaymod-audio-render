@@ -14,8 +14,8 @@ stonecutter {
     centralScript = "build.gradle.kts"
 
     create(rootProject) {
-        versions("1.21.1", "26.1.1")
-        vcsVersion = "1.21.1"
+        versions("1.14.4", "1.18.2", "1.19.3", "26.1.1")
+        vcsVersion = "1.19.3"
     }
 }
 

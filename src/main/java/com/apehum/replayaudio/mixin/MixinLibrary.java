@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.nio.Buffer;
 import java.nio.IntBuffer;
 
 @Mixin(Library.class)
@@ -25,7 +26,7 @@ public class MixinLibrary {
     private static void openDeviceOrFallback(CallbackInfoReturnable<Long> cir) {
         if (!ReplayModAudioRender.isRendering()) return;
 
-        var devicePointer = SOFTLoopback.alcLoopbackOpenDeviceSOFT((String) null);
+        long devicePointer = SOFTLoopback.alcLoopbackOpenDeviceSOFT((String) null);
         cir.setReturnValue(devicePointer);
     }
 
@@ -43,8 +44,9 @@ public class MixinLibrary {
                     .put(ALC10.ALC_FREQUENCY).put(48000)
                     .put(SOFTLoopback.ALC_FORMAT_CHANNELS_SOFT).put(channelFormat)
                     .put(SOFTLoopback.ALC_FORMAT_TYPE_SOFT).put(SOFTLoopback.ALC_SHORT_SOFT)
-                    .put(0)
-                    .flip();
+                    .put(0);
+            ((Buffer) intBuffer).flip();
+
             return ALC10.alcCreateContext(this.currentDevice, intBuffer);
         }
     }

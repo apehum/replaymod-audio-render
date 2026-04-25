@@ -7,10 +7,12 @@ import com.replaymod.lib.de.johni0702.minecraft.gui.container.GuiPanel;
 import com.replaymod.lib.de.johni0702.minecraft.gui.container.GuiVerticalList;
 import com.replaymod.lib.de.johni0702.minecraft.gui.element.GuiButton;
 import com.replaymod.lib.de.johni0702.minecraft.gui.element.GuiCheckbox;
+import com.replaymod.lib.de.johni0702.minecraft.gui.element.GuiElement;
 import com.replaymod.lib.de.johni0702.minecraft.gui.element.GuiLabel;
 import com.replaymod.lib.de.johni0702.minecraft.gui.element.IGuiClickable;
 import com.replaymod.lib.de.johni0702.minecraft.gui.element.advanced.GuiDropdownMenu;
 import com.replaymod.lib.de.johni0702.minecraft.gui.layout.GridLayout;
+import com.replaymod.lib.de.johni0702.minecraft.gui.layout.LayoutData;
 import com.replaymod.lib.de.johni0702.minecraft.gui.layout.VerticalLayout;
 import com.replaymod.lib.de.johni0702.minecraft.gui.popup.GuiFileChooserPopup;
 import com.replaymod.lib.de.johni0702.minecraft.gui.utils.lwjgl.Dimension;
@@ -25,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.File;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Mixin(GuiRenderSettings.class)
 public abstract class MixinGuiRenderSettings {
@@ -124,9 +127,9 @@ public abstract class MixinGuiRenderSettings {
         replayaudio$updateOutputButtonLabel();
 
         GuiPanel list = settingsList.getListPanel();
-        var snapshot = new LinkedHashMap<>(list.getElements());
+        Map<GuiElement, LayoutData> snapshot = new LinkedHashMap<>(list.getElements());
         snapshot.keySet().forEach(list::removeElement);
-        for (var e : snapshot.entrySet()) {
+        for (Map.Entry<GuiElement, LayoutData> e : snapshot.entrySet()) {
             list.addElements(e.getValue(), e.getKey());
             if (e.getKey() == mainPanel) {
                 list.addElements(

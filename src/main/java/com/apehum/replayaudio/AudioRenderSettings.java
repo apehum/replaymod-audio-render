@@ -6,6 +6,7 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -30,7 +31,7 @@ public class AudioRenderSettings {
         try {
             if (Files.exists(CONFIG_PATH)) {
                 AudioRenderSettings loaded = GSON.fromJson(
-                        Files.readString(CONFIG_PATH),
+                        new String(Files.readAllBytes(CONFIG_PATH), StandardCharsets.UTF_8),
                         AudioRenderSettings.class
                 );
                 if (loaded != null) {
@@ -46,7 +47,7 @@ public class AudioRenderSettings {
 
     public void save() {
         try {
-            Files.writeString(CONFIG_PATH, GSON.toJson(this));
+            Files.write(CONFIG_PATH, GSON.toJson(this).getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             ReplayModAudioRender.LOGGER.warn("Failed to save audio render settings", e);
         }

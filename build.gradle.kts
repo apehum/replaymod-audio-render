@@ -48,6 +48,14 @@ repositories {
     }
 }
 
+val javaVersion = when {
+    stonecutter.eval(minecraftVersion, ">=26.1") -> 25
+    stonecutter.eval(minecraftVersion, ">=1.20.5") -> 21
+    stonecutter.eval(minecraftVersion, ">=1.18") -> 17
+    stonecutter.eval(minecraftVersion, ">=1.17") -> 16
+    else -> 8
+}
+
 dependencies {
     "minecraft"("com.mojang:minecraft:$minecraftVersion")
 
@@ -70,21 +78,15 @@ tasks {
     }
 
     processResources {
-        inputs.property("version", project.version)
-        inputs.property("minecraftVersionDependency", project.property("minecraft_version_dependency"))
-
         filesMatching("fabric.mod.json") {
             expand(
                 mapOf(
                     "version" to project.version,
                     "minecraftVersionDependency" to project.property("minecraft_version_dependency"),
+                    "fabricApiDependencyName" to if (noMappings) "fabric-api" else "fabric",
                 ),
             )
         }
-    }
-
-    withType<JavaCompile>().configureEach {
-        options.release.set(if (noMappings) 25 else 21)
     }
 
     val copyToRoot =
@@ -102,13 +104,25 @@ tasks {
     }
 }
 
-kotlin {
-    jvmToolchain(if (noMappings) 25 else 21)
+stonecutter {
+    replacements.string(current.parsed >= "1.18.2") {
+        replace("tryOpenDevice", "openDeviceOrFallback")
+    }
+
+    replacements.string(current.parsed >= "1.18.2") {
+        replace("device", "currentDevice")
+    }
+
+    replacements.string(current.parsed >= "1.18.2") {
+        replace("getDevice", "getCurrentDevice")
+    }
 }
 
-java.toolchain.languageVersion.set(
-    JavaLanguageVersion.of(if (noMappings) 25 else 21),
-)
+kotlin {
+    jvmToolchain(javaVersion)
+}
+
+java.toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
 
 val outputJarTask =
     if (noMappings) {
