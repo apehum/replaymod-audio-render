@@ -7,16 +7,3 @@ Audio is saved in the same location and the same name (but with .aac extension) 
 
 ## Download
 - [Modrinth](https://modrinth.com/mod/replaymod-audio-render)
-
-## Known issues
-
-The audio seems slightly off-sync with video (but I'm not sure).
-
-Game audio is completely gone when video is being rendered.
-
-## TODO
-
-- [ ] Config
-- [ ] Disable UI sounds
-- [ ] Add audio "preview" when rendering the video
-- [ ] Support all versions of replaymod
