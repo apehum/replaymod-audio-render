@@ -161,6 +161,7 @@ publishMods {
     modrinth {
         projectId = "JNgb4oIM"
         accessToken = modrinthToken
+        requires("replaymod")
         this.minecraftVersions.addAll(minecraftVersions)
     }
 }
