@@ -46,7 +46,7 @@ public abstract class MixinGuiRenderSettings {
         replayaudio$settings = AudioRenderSettings.get();
 
         replayaudio$recordCheckbox = new GuiCheckbox()
-                .setI18nLabel("replayaudio.gui.rendersettings.record")
+                .setI18nLabel("replayaudio.gui.rendersettings.render")
                 .setChecked(replayaudio$settings.enabled);
 
         replayaudio$codecDropdown = new GuiDropdownMenu<AudioCodec>()
