@@ -1,9 +1,13 @@
 # ReplayModAudioRender
 
-ReplayMod addon for rendering audio using loopback device.
+[Modrinth](https://modrinth.com/mod/replaymod-audio-render)
 
-This addon basically replaces your audio device with [OpenAL loopback device](https://github.com/openalext/openalext/blob/master/ALC_SOFT_loopback.txt) when rendering and saves the audio in AAC format.
-Audio is saved in the same location and the same name (but with .aac extension) as the video.
+ReplayMod addon that captures audio while rendering a replay.
 
-## Download
-- [Modrinth](https://modrinth.com/mod/replaymod-audio-render)
+It swaps Minecraft's audio device for an [OpenAL loopback device](https://github.com/openalext/openalext/blob/master/ALC_SOFT_loopback.txt) during rendering and writes the captured audio to a file.
+
+## Settings
+
+**Audio Settings** section is added to the ReplayMod render menu.
+
+![Audio Settings](.github/assets/settings.png)
