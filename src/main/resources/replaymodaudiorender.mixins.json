@@ -10,7 +10,8 @@
 		"MixinVideoRenderer",
 		"MixinProcessTask",
 
-		"MixinGuiRenderSettings"
+		"MixinGuiRenderSettings",
+		"MixinGuiButton"
 	],
 	"injectors": {
 		"defaultRequire": 1
