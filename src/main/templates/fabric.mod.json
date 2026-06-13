@@ -1,0 +1,22 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "version": "${mod_version}",
+    "name": "${mod_name}",
+    "description": "${mod_description}",
+    "authors": [
+        "Apehum"
+    ],
+    "contact": {
+        "sources": "https://github.com/apehum/replaymod-audio-render"
+    },
+    "license": "LGPL-3.0",
+    "icon": "assets/replaymodaudiorender/icon.png",
+    "environment": "*",
+    "depends": {
+        "fabricloader": ">=${fabric_loader_version}",
+        "minecraft": "${minecraft_version_dependency}",
+        "${fabric_api_dependency_name}": "*",
+        "replaymod": "*"
+    }
+}

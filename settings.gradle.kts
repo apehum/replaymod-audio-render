@@ -1,8 +1,9 @@
 pluginManagement {
     repositories {
-        maven("https://maven.fabricmc.net/")
-        mavenCentral()
         gradlePluginPortal()
+        maven("https://maven.fabricmc.net/") { name = "Fabric" }
+        maven("https://maven.neoforged.net/releases") { name = "NeoForged" }
+        mavenCentral()
     }
 }
 
@@ -15,8 +16,19 @@ stonecutter {
     centralScript = "build.gradle.kts"
 
     create(rootProject) {
-        versions("1.14.4", "1.18.2", "1.19.3", "26.1.1")
-        vcsVersion = "1.19.3"
+        fun mc(
+            mcVersion: String,
+            vararg loaders: String,
+        ) = loaders.forEach { version("$mcVersion-$it", mcVersion) }
+
+        mc("1.14.4", "fabric")
+        mc("1.18.2", "fabric")
+        mc("1.19.3", "fabric")
+        mc("26.1.1", "fabric")
+
+        mc("1.21.1", "neoforge")
+
+        vcsVersion = "1.19.3-fabric"
     }
 }
 

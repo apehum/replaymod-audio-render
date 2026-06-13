@@ -1,110 +1,88 @@
 import com.apehum.replayaudio.VersionResolver
 import me.modmuss50.mpp.ReleaseType
-import net.fabricmc.loom.LoomGradlePlugin
-import net.fabricmc.loom.LoomNoRemapGradlePlugin
-import net.fabricmc.loom.api.LoomGradleExtensionAPI
-import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-    kotlin("jvm") version "2.3.20"
-    id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT" apply false
+    id("dev.isxander.modstitch.base") version "0.8.4"
     id("me.modmuss50.mod-publish-plugin") version "1.1.0"
-    `maven-publish`
 }
 
-val minecraftVersion = stonecutter.current.version.substringBefore('-')
-val noMappings = stonecutter.eval(minecraftVersion, ">=26.1")
+val platform = stonecutter.current.project.substringAfter('-')
+val mcVersion = stonecutter.current.version
+val isFabric = platform == "fabric"
+val isNeoforge = platform == "neoforge"
 
-version = "${rootProject.property("mod_version")}+$minecraftVersion"
-group = rootProject.property("maven_group") as String
-base.archivesName.set(rootProject.property("archives_base_name") as String)
+version = "${property("mod_version")}+$mcVersion"
+group = property("maven_group") as String
 
-if (noMappings) {
-    apply<LoomNoRemapGradlePlugin>()
-
-    configurations.api.get().extendsFrom(configurations.create("modApi"))
-    configurations.implementation.get().extendsFrom(configurations.create("modImplementation"))
-    configurations.compileOnly.get().extendsFrom(configurations.create("modCompileOnly"))
-    configurations.runtimeOnly.get().extendsFrom(configurations.create("modRuntimeOnly"))
-} else {
-    apply<LoomGradlePlugin>()
+base {
+    archivesName = "${property("archives_base_name")}-$platform"
 }
 
-val loom = the<LoomGradleExtensionAPI>()
+modstitch {
+    minecraftVersion = property("minecraft_version") as String
 
-repositories {
-    mavenCentral()
+    loom {
+        fabricLoaderVersion = property("deps.fabric_loader_version") as String
 
-    exclusiveContent {
-        forRepository {
-            maven {
-                name = "Modrinth"
-                url = uri("https://api.modrinth.com/maven")
-            }
-        }
-        filter {
-            includeGroup("maven.modrinth")
+        configureLoom {
+            runs.all { runDir = "../../run" }
         }
     }
-}
 
-val javaVersion = when {
-    stonecutter.eval(minecraftVersion, ">=26.1") -> 25
-    stonecutter.eval(minecraftVersion, ">=1.20.5") -> 21
-    stonecutter.eval(minecraftVersion, ">=1.18") -> 17
-    stonecutter.eval(minecraftVersion, ">=1.17") -> 16
-    else -> 8
+    moddevgradle {
+        neoForgeVersion = property("deps.neoforge") as? String
+
+        defaultRuns(true, false)
+
+        configureNeoForge {
+            runs.all { gameDirectory = file("../../run") }
+        }
+    }
+
+    metadata {
+        modId = "replaymodaudiorender"
+        modVersion = project.version.toString()
+        modName = "ReplayModAudioRender"
+        modDescription = "ReplayMod addon for rendering audio using loopback device."
+
+        replacementProperties.apply {
+            put("fabric_loader_version", property("deps.fabric_loader_version") as String)
+            put("minecraft_version_dependency", property("minecraft_version_dependency") as String)
+            (findProperty("minecraft_version_range") as? String)?.let { put("minecraft_version_range", it) }
+            put("fabric_api_dependency_name", if (stonecutter.eval(mcVersion, ">=26.1")) "fabric-api" else "fabric")
+        }
+    }
+
+    mixin {
+        addMixinsToModManifest = true
+
+        configs.register("replaymodaudiorender")
+    }
 }
 
 dependencies {
-    "minecraft"("com.mojang:minecraft:$minecraftVersion")
-
-    if (!noMappings) {
-        "mappings"(loom.officialMojangMappings())
+    modstitch.loom {
+        modstitchModImplementation("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
+        modstitchModImplementation("maven.modrinth:replaymod:${property("deps.replaymod")}")
     }
 
-    "modImplementation"("net.fabricmc:fabric-loader:${property("loader_version")}")
-    "modImplementation"("net.fabricmc.fabric-api:fabric-api:${property("deps.fabric_api")}")
-    "modImplementation"("maven.modrinth:replaymod:${property("deps.replaymod")}")
-
-    compileOnly(kotlin("stdlib-jdk8"))
-}
-
-tasks {
-    jar {
-        from(rootProject.file("LICENSE")) {
-            rename { "${it}_${base.archivesName.get()}" }
-        }
-    }
-
-    processResources {
-        filesMatching("fabric.mod.json") {
-            expand(
-                mapOf(
-                    "version" to project.version,
-                    "minecraftVersionDependency" to project.property("minecraft_version_dependency"),
-                    "fabricApiDependencyName" to if (noMappings) "fabric-api" else "fabric",
-                ),
-            )
-        }
-    }
-
-    val copyToRoot =
-        register<Copy>("copyToRoot") {
-            if (noMappings) {
-                from(jar.get().archiveFile)
-            } else {
-                from(named<RemapJarTask>("remapJar").get().archiveFile)
-            }
-            into(rootProject.layout.buildDirectory.dir("libs"))
-        }
-
-    build {
-        finalizedBy(copyToRoot)
+    modstitch.moddevgradle {
+        modstitchModImplementation("curse.maven:reforgedplay-mod-1018692:${property("deps.reforgedplay_file")}")
+        // these libraries are jij in reforgedplay, so we need to manually specify them
+        compileOnly("org.apache.commons:commons-exec:1.3")
+        compileOnly("com.github.ReplayMod:lwjgl-utils:27dcd66")
     }
 }
 
 stonecutter {
+    // reforgedplay keeps these libraries unshaded
+    replacements.string(isNeoforge) {
+        replace("com.replaymod.lib.de.johni0702.minecraft", "de.johni0702.minecraft")
+    }
+    replacements.string(isNeoforge) {
+        replace("com.replaymod.lib.org.apache.commons.exec", "org.apache.commons.exec")
+    }
+
     replacements.string(current.parsed >= "1.18.2") {
         replace("tryOpenDevice", "openDeviceOrFallback")
     }
@@ -118,18 +96,26 @@ stonecutter {
     }
 }
 
-kotlin {
-    jvmToolchain(javaVersion)
-}
+val outputJarTask = modstitch.finalJarTask
 
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
-
-val outputJarTask =
-    if (noMappings) {
-        tasks.named<Jar>("jar")
-    } else {
-        tasks.named<RemapJarTask>("remapJar")
+tasks {
+    jar {
+        from(rootProject.file("LICENSE")) {
+            rename { "${it}_${project.property("archives_base_name")}" }
+        }
     }
+
+    val copyToRoot =
+        register<Copy>("copyToRoot") {
+            dependsOn(outputJarTask)
+            from(outputJarTask.map { it.archiveFile.get() })
+            into(rootProject.layout.buildDirectory.dir("libs"))
+        }
+
+    build {
+        dependsOn(copyToRoot)
+    }
+}
 
 publishMods {
     changelog =
@@ -138,30 +124,61 @@ publishMods {
             .asFile
             .readText()
     type = ReleaseType.BETA
-    modLoaders.add("fabric")
+    modLoaders.add(platform)
 
-    displayName = "[Fabric $minecraftVersion] ReplayModAudioRender ${rootProject.property("mod_version")}"
+    val loaderDisplayName =
+        when (platform) {
+            "fabric" -> "Fabric"
+            "neoforge" -> "NeoForge"
+            else -> throw IllegalStateException("Unsupported platform $platform")
+        }
+
+    displayName = "[$loaderDisplayName $mcVersion] ReplayModAudioRender ${property("mod_version")}"
     file = outputJarTask.flatMap { it.archiveFile }
 
     val modrinthToken =
         providers
             .gradleProperty("modrinth_token")
-            .orElse(providers.environmentVariable("MODRINTH_TOKEN"))
+            .orElse(providers.environmentVariable("MODRINTH_TOKEN").orElse(""))
             .orNull
             ?.takeIf { it.isNotBlank() }
 
-    dryRun = modrinthToken == null
+    val curseforgeToken =
+        providers
+            .gradleProperty("curseforge_token")
+            .orElse(providers.environmentVariable("CURSEFORGE_TOKEN").orElse(""))
+            .orNull
+            ?.takeIf { it.isNotBlank() }
 
     val minecraftVersions =
         VersionResolver
-            .getMinecraftVersionsInRange("release", project.property("minecraft_version_dependency") as String)
+            .getMinecraftVersionsInRange("release", property("minecraft_version_dependency") as String)
             .get()
             .map { it.id }
 
-    modrinth {
-        projectId = "JNgb4oIM"
-        accessToken = modrinthToken
-        requires("replaymod")
-        this.minecraftVersions.addAll(minecraftVersions)
+    if (isFabric) {
+        modrinth {
+            projectId = "JNgb4oIM"
+            accessToken = modrinthToken
+            requires("replaymod")
+            this.minecraftVersions.addAll(minecraftVersions)
+        }
     }
+
+    if (isNeoforge) {
+        curseforge {
+            projectId = ""
+            accessToken = curseforgeToken
+            requires("reforgedplay-mod")
+            this.minecraftVersions.addAll(minecraftVersions)
+        }
+    }
+
+    val dryRunProperty =
+        providers
+            .gradleProperty("dry_run")
+            .getOrElse("false")
+            .toBoolean()
+
+    dryRun = modrinthToken == null || curseforgeToken == null || dryRunProperty
 }

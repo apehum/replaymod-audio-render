@@ -2,7 +2,11 @@ package com.apehum.replayaudio;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+//? if fabric {
 import net.fabricmc.loader.api.FabricLoader;
+//?} else {
+/*import net.neoforged.fml.loading.FMLPaths;
+*///?}
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +17,11 @@ import java.nio.file.Path;
 public class AudioRenderSettings {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH =
+            //? if fabric {
             FabricLoader.getInstance().getConfigDir().resolve("replaymodaudiorender.json");
+            //?} else {
+            /*FMLPaths.CONFIGDIR.get().resolve("replaymodaudiorender.json");
+            *///?}
 
     private static AudioRenderSettings INSTANCE;
 
