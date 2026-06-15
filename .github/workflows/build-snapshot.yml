@@ -33,6 +33,11 @@ jobs:
       id: list
       run: echo "jars=$(cd build/libs && ls *.jar | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
 
+    - uses: actions/upload-artifact@v4
+      with:
+        name: all-jars
+        path: build/libs/*.jar
+
   upload:
     needs: build
     runs-on: ubuntu-latest
