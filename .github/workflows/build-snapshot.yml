@@ -4,12 +4,13 @@ on:
   push:
 
 jobs:
-  build-and-upload:
-
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write
+    outputs:
+      jars: ${{ steps.list.outputs.jars }}
 
     steps:
     - uses: actions/checkout@v5
@@ -28,8 +29,24 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
 
+    - name: List jars
+      id: list
+      run: echo "jars=$(cd build/libs && ls *.jar | jq -R -s -c 'split("\n")[:-1]')" >> "$GITHUB_OUTPUT"
+
+  upload:
+    needs: build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        jar: ${{ fromJson(needs.build.outputs.jars) }}
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: all-jars
+
     - uses: actions/upload-artifact@v4
       with:
-        name: pv-addon-ReplayModAudioRender
-        path: |
-          build/libs/*.jar
+        name: ${{ matrix.jar }}
+        path: ${{ matrix.jar }}
